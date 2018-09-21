@@ -3,15 +3,8 @@ import cv2
 from utils import *
 import os
 
-type = 'SIFT'
 database_url = 'E://UserData\car_images'
+retrieve_url = 'E://UserData\car_images\A0RP77\A0RP77_20151129151034_6765527322.jpg'
 
-imageRetrievor = ImageRetrievor('1.jpg', database_url)
-imageRetrievor.compute_archives()
-# imageRetrievor.compute_archives()
-# imageRetrievor.compute_retrieve_vectors(type=type)
-# #imageRetrievor.compute_distance(type='min')
-# imageRetrievor.compute_distance(type=type)
-
-#print(imageRetrievor.distances)
-print(imageRetrievor.archives)
+imageRetrievor = ImageRetrievor(database_url)
+imageRetrievor.retrieve(retrieve_url)

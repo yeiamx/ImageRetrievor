@@ -1,6 +1,46 @@
 import numpy as np
 import cv2
 
+def img_to_vect(img_path, cluster_model):
+    """
+    Given an image path and a trained clustering model (eg KMeans),
+    generates a feature vector representing that image.
+    Useful for processing new images for a classifier prediction.
+    """
+    img = cv2.imread(img_path)
+    gray = to_gray(img)
+    kp, desc = gen_surf_features(gray)
+
+    clustered_desc = cluster_model.predict(desc)
+    img_bow_hist = np.bincount(clustered_desc,
+                               minlength=cluster_model.n_clusters)
+    #转化为1*K的形式,K为字典的大小，即聚类的类别数
+    return img_bow_hist.reshape(1,-1)
+
+
+def to_gray(color_img):
+    gray = cv2.cvtColor(color_img, cv2.COLOR_RGB2GRAY)
+    return gray
+
+def gen_surf_features(gray_img):
+    surf = cv2.xfeatures2d.SURF_create(400)
+    key_query, desc_query = surf.detectAndCompute(gray_img, None)
+    return key_query, desc_query
+
+def gen_all_surf_features(imgs):
+    print('generating surf features...')
+    img_descs = []
+    index = 0
+    for item in imgs:
+        index+=1
+        print('generating feature(SURF):'+str(index)+'/'+str(len(imgs)))
+        img = cv2.imread(item)
+        img = to_gray(img)
+        key_query, desc_query = gen_surf_features(img)
+        img_descs.append(desc_query)
+    return img_descs
+
+
 def drawMatchesKnn_cv2(img1_gray,kp1,img2_gray,kp2,goodMatch):
     h1, w1 = img1_gray.shape[:2]
     h2, w2 = img2_gray.shape[:2]

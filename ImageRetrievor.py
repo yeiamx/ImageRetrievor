@@ -6,6 +6,7 @@ import numpy as np
 from scipy.spatial.distance import pdist
 import cv2
 import os
+from DictionaryTrainer import *
 
 class ImageRetrievor(object):
     def __init__(self, database_url):
@@ -13,25 +14,40 @@ class ImageRetrievor(object):
         self.distances = []
 
         self.database_url = database_url
+        self.dictionary_trainer = DictionaryTrainer()
 
         self.std_width = 136 * 3
         self.std_height = 76 * 3
 
         self.retrieve_vectors = []
 
-    def retrieve(self, imageUrl):
-        pass
+    def retrieve(self, imageUrl, type='BoW'):
+        self.image_input(imageUrl, type)
+        self.compute_archives()
+        self.compute_retrieve_vectors(type)
+        self.compute_distance(type)
 
-    def image_input(self, imageUrl):
+        minIndex = self.distances.index(min(self.distances))
+        file_name = self.archives[minIndex]
+        img = cv2.imread(file_name)
+        cv2.imshow("result",img)
+        cv2.waitKey(0)
+
+    def image_input(self, imageUrl, type):
         self.image_url = imageUrl
-        self.image = Image.open(imageUrl)
-        self.image_array = np.array(self.image)
-        self.vector = transform.resize(self.image_array, (self.std_width, self.std_height)).flatten()
+        if (type=='flatten'):
+            self.image = Image.open(imageUrl)
+            self.image_array = np.array(self.image)
+            self.vector = transform.resize(self.image_array, (self.std_width, self.std_height)).flatten()
+        elif (type=='BoW'):
+            self.vector = None #Can only be computed after training process done.
 
-
-    def compute_distance(self, type='eu', p=3):
+    def compute_distance(self, type='BoW', p=3):
+        index = 0
         for retrieve_vector in self.retrieve_vectors:
-            if (type=='eu'):
+            index+=1
+            print('computing distance:'+str(index)+'/'+str(len(self.retrieve_vectors)))
+            if (type=='eu' or type=='BoW'):
                 self.distances.append(np.linalg.norm(self.vector-retrieve_vector))
             elif (type=='min'):
                 self.distances.append(pdist(np.vstack([self.vector, retrieve_vector]),'minkowski',p)[0])
@@ -48,19 +64,28 @@ class ImageRetrievor(object):
                 realDis /= len(retrieve_vector)
                 self.distances.append(realDis)
 
-    def compute_retrieve_vectors(self, type='Original'):
+    def compute_retrieve_vectors(self, type='BoW'):
         if type=='Original':
             for retrieve_img_url in self.archives:
                 retrieve_img = Image.open(retrieve_img_url)
                 retrieve_vector = transform.resize(np.array(retrieve_img), self.image_array.shape).flatten()
                 self.retrieve_vectors.append(retrieve_vector)
         if type=='SIFT':
+            index = 0
             for retrieve_img_url in self.archives:
+                index+=1
+                print('computing retrievector(SIFT):'+str(index)+'/'+str(len(self.archives)))
                 kp_ret, des_ret = self.compute_features(retrieve_img_url)
                 kp_or, des_or = self.compute_features(self.image_url)
                 bf = cv2.BFMatcher(cv2.NORM_L2)
                 matches = bf.knnMatch(des_ret, des_or, k = 1)
                 self.retrieve_vectors.append(matches)
+        if type=='BoW':
+                self.dictionary_trainer.train(self.archives)
+                self.vector = img_to_vect(self.image_url, self.dictionary_trainer.cluster_model)#Until now can we compute the vector of origin retrieve image
+                img_bow_hist = self.dictionary_trainer.img_bow_hist
+                for index in range(len(self.archives)):
+                    self.retrieve_vectors.append(img_bow_hist[index])
 
     def compute_features(self, imgUrl, type='SIFT'):
         img = cv2.imread(imgUrl)
@@ -92,11 +117,13 @@ class ImageRetrievor(object):
         return self.keypoints, descriptor
 
     def compute_archives(self):
+        print('computing archives...')
         for root ,dirs ,files in os.walk(self.database_url):
             for file in files:
                 file_name = os.path.join(root,file)
-                if file_name.split("\\")[-1].split('.')[-1] =='jpg':
+                if file_name.split("\\")[-1].split('.')[-1] =='jpg' and file_name!=self.image_url:
                     self.archives.append(file_name)
+        print('computing archives done')
 
 
 

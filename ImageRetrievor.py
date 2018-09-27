@@ -20,7 +20,8 @@ class ImageRetrievor(object):
         self.std_height = 76 * 3
 
         self.retrieve_vectors = []
-
+        self.return_N=5
+        self.min_distances = []
     def retrieve(self, imageUrl, type='BoW'):
         self.image_input(imageUrl, type)
         self.compute_archives()
@@ -30,8 +31,10 @@ class ImageRetrievor(object):
         minIndex = self.distances.index(min(self.distances))
         file_name = self.archives[minIndex]
         img = cv2.imread(file_name)
-        cv2.imshow("result",img)
-        cv2.waitKey(0)
+        #cv2.imshow("best_result",img)
+        #cv2.waitKey(0)
+
+        self.min_distances = sorted(enumerate(self.distances), key=lambda x:x[1])
 
     def image_input(self, imageUrl, type):
         self.image_url = imageUrl
@@ -87,6 +90,7 @@ class ImageRetrievor(object):
                 for index in range(len(self.archives)):
                     self.retrieve_vectors.append(img_bow_hist[index])
 
+    #A despercated method.
     def compute_features(self, imgUrl, type='SIFT'):
         img = cv2.imread(imgUrl)
         img = cv2.resize(img,(136 * 3,76 * 3))
@@ -125,5 +129,17 @@ class ImageRetrievor(object):
                     self.archives.append(file_name)
         print('computing archives done')
 
+    def drawRecallRate(self):
+        carName = self.image_url.split('\\')[2]
+        for root ,dirs ,files in os.walk(self.database_url):
 
+            actualCorrectNum = len(files)
+            computeCorrentNum = 0
+            for min_distance in self.min_distances:
+                if (self.archives[min_distance[0]].split('\\')[2].equals(carName)):
+                    computeCorrectNum = computeCorrectNum+1
+                    print(self.archives[min_distance[0]])
+        print(computeCorrectNum/actualCorrectNum)
 
+    def drawPrecisonRate(self):
+        pass

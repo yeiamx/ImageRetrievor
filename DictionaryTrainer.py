@@ -5,30 +5,22 @@ from sklearn.cluster import MiniBatchKMeans
 
 class DictionaryTrainer(object):
     def __init__(self):
-        self.K = 500 #要聚类的数量，即字典的大小(包含的单词数)
+        self.K = 400 #要聚类的数量，即字典的大小(包含的单词数)
         self.cluster_model = MiniBatchKMeans(n_clusters=self.K, init_size=3*self.K)
 
     def train(self, archives, option='compute'):
         print('starting training...')
         self.archives = archives
-        img_descs = gen_all_surf_features(self.archives)
-        if os.path.exists('img_bow_hist.npy'):
-            print('there exists hist.Use img_bow_hist.npy.')
-            self.img_bow_hist = np.load('img_bow_hist.npy')
+        if os.path.exists('img_descs.txt'):
+            print('there exists descs.Use it.')
+            f=open('data/img_descs.txt','rb+')
+            img_descs=pickle.load(f)
+            f.close()
         else:
-             print('There isnt exist any hist.Compute the hist using database provided.')
-             self.img_bow_hist = self.cluster_features(img_descs)
-             np.save('img_bow_hist.npy', self.img_bow_hist)
-        # if (option=='compute'):
-        #     self.img_bow_hist = self.cluster_features(img_descs)
-        #     if not os.path.exists('img_bow_hist.npy'):
-        #         np.save('img_bow_hist.npy', self.img_bow_hist)
-        # elif (option=='load'):
-        #     if os.path.exists('img_bow_hist.npy'):
-        #         self.img_bow_hist = np.load('img_bow_hist.npy')
-        #     else:
-        #         print('there isnt exist any hist.You may want retrain the dataset using "compute" option.')
-        #         exit(0)
+             print('Missing hist or missing img_descs(features).Compute the hist using database provided.')
+             img_descs = gen_all_surf_features(self.archives)
+        self.img_bow_hist = self.cluster_features(img_descs)
+
         print('training done!')
 
     def cluster_features(self, img_descs):
@@ -38,7 +30,7 @@ class DictionaryTrainer(object):
         train_descs = [desc for desc_list in img_descs
                            for desc in desc_list]
         train_descs = np.array(train_descs)#转换为numpy的格式
-
+        print(train_descs.shape)
         #判断D是否为64
         if train_descs.shape[1] != 64:
             raise ValueError('期望的SURF特征维度应为64, 实际为'

@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+import os
+import pickle
 
 def img_to_vect(img_path, cluster_model):
     """
@@ -38,6 +40,10 @@ def gen_all_surf_features(imgs):
         img = to_gray(img)
         key_query, desc_query = gen_surf_features(img)
         img_descs.append(desc_query)
+    if not os.path.exists('data/img_descs.txt'):
+        f=open('data/img_descs.txt','wb+')
+        pickle.dump(img_descs, f, -1)
+
     return img_descs
 
 

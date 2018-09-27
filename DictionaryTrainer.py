@@ -12,16 +12,23 @@ class DictionaryTrainer(object):
         print('starting training...')
         self.archives = archives
         img_descs = gen_all_surf_features(self.archives)
-        if (option=='compute'):
-            self.img_bow_hist = self.cluster_features(img_descs)
-            if not os.path.exists('img_bow_hist.npy'):
-                np.save('img_bow_hist.npy', self.img_bow_hist)
-        elif (option=='load'):
-            if os.path.exists('img_bow_hist.npy'):
-                self.img_bow_hist = np.load('img_bow_hist.npy')
-            else:
-                print('there isnt exist any hist.You may want retrain the dataset using "compute" option.')
-                exit(0)
+        if os.path.exists('img_bow_hist.npy'):
+            print('there exists hist.Use img_bow_hist.npy.')
+            self.img_bow_hist = np.load('img_bow_hist.npy')
+        else:
+             print('There isnt exist any hist.Compute the hist using database provided.')
+             self.img_bow_hist = self.cluster_features(img_descs)
+             np.save('img_bow_hist.npy', self.img_bow_hist)
+        # if (option=='compute'):
+        #     self.img_bow_hist = self.cluster_features(img_descs)
+        #     if not os.path.exists('img_bow_hist.npy'):
+        #         np.save('img_bow_hist.npy', self.img_bow_hist)
+        # elif (option=='load'):
+        #     if os.path.exists('img_bow_hist.npy'):
+        #         self.img_bow_hist = np.load('img_bow_hist.npy')
+        #     else:
+        #         print('there isnt exist any hist.You may want retrain the dataset using "compute" option.')
+        #         exit(0)
         print('training done!')
 
     def cluster_features(self, img_descs):

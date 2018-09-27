@@ -11,7 +11,7 @@ class DictionaryTrainer(object):
     def train(self, archives, option='compute'):
         print('starting training...')
         self.archives = archives
-        if os.path.exists('img_descs.txt'):
+        if os.path.exists('data/img_descs.txt'):
             print('there exists descs.Use it.')
             f=open('data/img_descs.txt','rb+')
             img_descs=pickle.load(f)

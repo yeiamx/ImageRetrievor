@@ -20,7 +20,7 @@ class ImageRetrievor(object):
         self.std_height = 76 * 3
 
         self.retrieve_vectors = []
-        self.return_N=5
+
         self.min_distances = []
     def retrieve(self, imageUrl, type='BoW'):
         self.image_input(imageUrl, type)
@@ -31,8 +31,8 @@ class ImageRetrievor(object):
         minIndex = self.distances.index(min(self.distances))
         file_name = self.archives[minIndex]
         img = cv2.imread(file_name)
-        #cv2.imshow("best_result",img)
-        #cv2.waitKey(0)
+        cv2.imshow("best_result",img)
+        cv2.waitKey(0)
 
         self.min_distances = sorted(enumerate(self.distances), key=lambda x:x[1])
 
@@ -129,17 +129,32 @@ class ImageRetrievor(object):
                     self.archives.append(file_name)
         print('computing archives done')
 
-    def drawRecallRate(self):
+    def computeRecallRate(self, return_N=10):
         carName = self.image_url.split('\\')[2]
-        for root ,dirs ,files in os.walk(self.database_url):
+        computeCorrectNum = 0
 
-            actualCorrectNum = len(files)
-            computeCorrentNum = 0
-            for min_distance in self.min_distances:
-                if (self.archives[min_distance[0]].split('\\')[2].equals(carName)):
-                    computeCorrectNum = computeCorrectNum+1
-                    print(self.archives[min_distance[0]])
-        print(computeCorrectNum/actualCorrectNum)
+        root_Url = self.database_url+"\\"+carName
+        #If exists no correct picture. Divide zero make it exception.
+        actualCorrectNum = len([name for name in os.listdir(root_Url) if os.path.isfile(os.path.join(root_Url, name))])
+        for index in range(return_N):
+            #print("dected:"+self.archives[self.min_distances[index][0]])
+            if self.archives[self.min_distances[index][0]].split('\\')[2]==carName:
+                computeCorrectNum = computeCorrectNum+1
 
-    def drawPrecisonRate(self):
-        pass
+        #print('compute correct num:'+str(computeCorrectNum)+"/actual correct num"+str(actualCorrectNum))
+        #print("RECALL RATE:"+str(computeCorrectNum/actualCorrectNum))
+        return computeCorrectNum/actualCorrectNum
+
+    def computePrecisonRate(self, return_N=10):
+        carName = self.image_url.split('\\')[2]
+        computeCorrectNum = 0
+
+        root_Url = self.database_url+"\\"+carName
+        for index in range(return_N):
+            #print("dected:"+self.archives[self.min_distances[index][0]])
+            if self.archives[self.min_distances[index][0]].split('\\')[2]==carName:
+                computeCorrectNum = computeCorrectNum+1
+
+        #print('compute correct num:'+str(computeCorrectNum)+"/return num"+str(return_N))
+        #print("PRECISION RATE:"+str(computeCorrectNum/return_N))
+        return computeCorrectNum/return_N

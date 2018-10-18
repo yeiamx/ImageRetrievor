@@ -6,13 +6,12 @@ from scipy.interpolate import spline
 import matplotlib.pyplot as plt
 
 database_url = 'E://UserData\car_images'
-# retrieve_url = 'E://UserData\car_images\A1LV26\A1LV26_20151201141841_6777645514.jpg' #good
-# retrieve_url = 'E://UserData\car_images\A2SN82\A2SN82_20151201190112_6779523485.jpg' #bad
-retrieve_url = 'E://UserData\car_images\A1TA21\A1TA21_20151201195217_3091692917.jpg' #quite ok(soso)
+retrieve_url = 'E://UserData\car_images\A1LV26\A1LV26_20151201141841_6777645514.jpg'
+#retrieve_url = 'E://UserData\car_images\A1TA21\A1TA21_20151201195217_3091692917.jpg'
+#retrieve_url = 'E://UserData\car_images\A1TA21\A1TA21_20151201195217_3091692917.jpg'
 
-
-
-imageRetrievor = ImageRetrievor(database_url)
+maxN = 30
+imageRetrievor = ImageRetrievor(database_url, maxN)
 imageRetrievor.retrieve(retrieve_url)
 
 #imageRetrievor.drawRecallRate(return_N=5)
@@ -35,12 +34,11 @@ def drawRecallPrecisonCurve(imageRetrievor, maxN):
     power_smooth_precison = spline(T,power_precison,xnew)
     power_smooth_call = spline(T,power_recall,xnew)
 
-
     plt.plot(xnew,power_smooth_precison)
     plt.plot(xnew,power_smooth_call)
     plt.show()
 
-maxN = 10
-drawRecallPrecisonCurve(imageRetrievor, maxN)
-for index in range(maxN):
-    print("detected:"+imageRetrievor.archives[imageRetrievor.min_distances[index][0]])
+#drawRecallPrecisonCurve(imageRetrievor, maxN)
+
+#for index in range(maxN):
+    #print("detected:"+imageRetrievor.archives[imageRetrievor.min_distances[index][0]]+" K="+str(imageRetrievor.img_class[index]))

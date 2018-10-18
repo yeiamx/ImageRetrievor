@@ -3,11 +3,10 @@ import cv2
 import os
 import pickle
 
+
 def img_to_vect(img_path, cluster_model):
     """
-    Given an image path and a trained clustering model (eg KMeans),
-    generates a feature vector representing that image.
-    Useful for processing new images for a classifier prediction.
+    将一张图片根据训练好的kmeans model转换为vect, 针对训练的图片。
     """
     img = cv2.imread(img_path)
     gray = to_gray(img)
@@ -46,7 +45,7 @@ def gen_all_surf_features(imgs):
 
     return img_descs
 
-
+#A despercated method.Used before using bof model.
 def drawMatchesKnn_cv2(img1_gray,kp1,img2_gray,kp2,goodMatch):
     h1, w1 = img1_gray.shape[:2]
     h2, w2 = img2_gray.shape[:2]

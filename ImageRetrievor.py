@@ -15,7 +15,7 @@ class ImageRetrievor(object):
         self.distances = []
 
         self.database_url = database_url
-        self.dictionary_trainer = DictionaryTrainer()
+        self.dictionary_trainer = DictionaryTrainer(K=256)
 
         self.std_width = 136 * 3
         self.std_height = 76 * 3
@@ -25,12 +25,15 @@ class ImageRetrievor(object):
         self.min_distances = []
         self.img_class = []
         self.maxN = maxN
+        self.average_N = 10#maxN
 
-    def retrieve(self, imageUrl, type='BoW'):
-        self.image_input(imageUrl, type)
+        self.type='BoW'
+
+    def retrieve(self, imageUrl):
+        self.image_input(imageUrl, self.type)
         self.compute_archives()
-        self.compute_retrieve_vectors(type)
-        self.compute_distance(type)
+        self.compute_retrieve_vectors(self.type)
+        self.compute_distance(self.type)
         self.min_distances = sorted(enumerate(self.distances), key=lambda x:x[1])
         self.resort_process()
 
@@ -39,6 +42,20 @@ class ImageRetrievor(object):
         img = cv2.imread(file_name)
         cv2.imshow("best_result",img)
         cv2.waitKey(0)
+
+    def query_expansion(self):
+        print("Start Query expansion--------------------------------------------")
+        new_input_hist = np.zeros(self.dictionary_trainer.K)
+        for index in range(self.average_N):
+            new_input_hist += self.retrieve_vectors[self.min_distances[index][0]]
+        new_input_hist /= self.average_N#len(self.retrieve_vectors)
+
+        self.vector = new_input_hist
+        self.compute_distance()
+        #print(self.distances)
+        self.min_distances = sorted(enumerate(self.distances), key=lambda x:x[1])
+        #print(len(self.min_distances))
+        print("Finish Query expansion--------------------------------------------")
 
 
     def image_input(self, imageUrl, type):
@@ -53,6 +70,7 @@ class ImageRetrievor(object):
     def compute_distance(self, type='BoW', p=3):
         print('computing distance...')
         index = 0
+        self.distances = []
         for retrieve_vector in self.retrieve_vectors:
             index+=1
 
@@ -127,10 +145,11 @@ class ImageRetrievor(object):
         retrieve_hist = img_to_vect(self.image_url, trainer.cluster_model)[0].tolist()
         #从大到小排序 每一项（类别，对应类别的值（置信值））
         retrieve_max_hist = sorted(enumerate(retrieve_hist), key=lambda x:x[1], reverse=True)
-        print(retrieve_max_hist)
+        #print(retrieve_max_hist)
         for k in retrieve_max_hist:
             for index in range(len(self.img_class)):
                 if k[0]==self.img_class[index]:
+                    #pass
                     print("detected:"+self.archives[self.min_distances[index][0]]+" K="+str(self.img_class[index]))
 
     def TF_IDF_modify(self):

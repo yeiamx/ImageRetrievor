@@ -10,15 +10,6 @@ retrieve_url = 'E://UserData\car_images\A1LV26\A1LV26_20151201141841_6777645514.
 #retrieve_url = 'E://UserData\car_images\A1TA21\A1TA21_20151201195217_3091692917.jpg'
 #retrieve_url = 'E://UserData\car_images\A1TA21\A1TA21_20151201195217_3091692917.jpg'
 
-maxN = 30
-imageRetrievor = ImageRetrievor(database_url, maxN)
-imageRetrievor.retrieve(retrieve_url)
-
-#imageRetrievor.drawRecallRate(return_N=5)
-#imageRetrievor.drawPrecisonRate(return_N=5)
-# for mindistance in mindistances:
-#     print(imageRetrievor.archives[mindistance[0]])
-#     img = cv2.imread(imageRetrievor.archives[mindistance[0]])
 def drawRecallPrecisonCurve(imageRetrievor, maxN):
     power_precison = []
     power_recall = []
@@ -26,6 +17,8 @@ def drawRecallPrecisonCurve(imageRetrievor, maxN):
     for index in range(maxN):
         power_precison.append(imageRetrievor.computePrecisonRate(index+1))
         power_recall.append(imageRetrievor.computeRecallRate(index+1))
+    print("average precision is", np.average(power_precison))
+    print("final recall rate is", power_recall[-1])
     power_precison = np.array(power_precison)
     power_recall = np.array(power_recall)
 
@@ -38,7 +31,21 @@ def drawRecallPrecisonCurve(imageRetrievor, maxN):
     plt.plot(xnew,power_smooth_call)
     plt.show()
 
-#drawRecallPrecisonCurve(imageRetrievor, maxN)
+maxN = 25
+imageRetrievor = ImageRetrievor(database_url, maxN)
+imageRetrievor.retrieve(retrieve_url)
+drawRecallPrecisonCurve(imageRetrievor, imageRetrievor.maxN)
+imageRetrievor.query_expansion()
+drawRecallPrecisonCurve(imageRetrievor, imageRetrievor.maxN)
+
+#imageRetrievor.drawRecallRate(return_N=5)
+#imageRetrievor.drawPrecisonRate(return_N=5)
+# for mindistance in mindistances:
+#     print(imageRetrievor.archives[mindistance[0]])
+#     img = cv2.imread(imageRetrievor.archives[mindistance[0]])
+
 
 #for index in range(maxN):
     #print("detected:"+imageRetrievor.archives[imageRetrievor.min_distances[index][0]]+" K="+str(imageRetrievor.img_class[index]))
+
+
